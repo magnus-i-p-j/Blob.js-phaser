@@ -12,6 +12,7 @@ var plugins = require('gulp-load-plugins')();
 var runSequence = require('run-sequence');
 
 var pkg = require('./package.json');
+var bower = require('./bower.json');
 var dirs = pkg.configuration.directories;
 
 // ---------------------------------------------------------------------
@@ -69,12 +70,14 @@ gulp.task('copy', [
     'copy:jquery',
     'copy:main.css',
     'copy:misc',
-    'copy:normalize'
+    'copy:normalize',
+    'copy:phaser'
 ]);
 
 gulp.task('copy:index.html', function () {
     return gulp.src(dirs.src + '/index.html')
                .pipe(plugins.replace(/{{JQUERY_VERSION}}/g, pkg.dependencies.jquery))
+                .pipe(plugins.replace(/{{PHASER_VERSION}}/g, bower.dependencies.phaser))
                .pipe(gulp.dest(dirs.dist));
 });
 
@@ -82,6 +85,12 @@ gulp.task('copy:jquery', function () {
     return gulp.src(['node_modules/jquery/dist/jquery.min.js'])
                .pipe(plugins.rename('jquery-' + pkg.dependencies.jquery + '.min.js'))
                .pipe(gulp.dest(dirs.dist + '/js/vendor'));
+});
+
+gulp.task('copy:phaser', function () {
+    return gulp.src(['bower_components/phaser/build/phaser.min.js'])
+        .pipe(plugins.rename('phaser-' + bower.dependencies.phaser + '.min.js'))
+        .pipe(gulp.dest(dirs.dist + '/js/vendor'));
 });
 
 gulp.task('copy:main.css', function () {
