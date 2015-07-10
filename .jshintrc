@@ -19,7 +19,7 @@
     // http://www.jshint.com/docs/options/#relaxing-options
 
     "esnext": true,
-
+    "debug": true,
     // - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     // Environments

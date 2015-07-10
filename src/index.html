@@ -17,12 +17,13 @@
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 
+        <!-- Part of a workaround since loading of requirejs is broken. -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/{{JQUERY_VERSION}}/jquery.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-{{JQUERY_VERSION}}.min.js"><\/script>')</script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery.min.js"><\/script>')</script>
         <script src="https://cdn.jsdelivr.net/phaser/{{PHASER_VERSION}}/phaser.min.js"></script>
-        <script>window.Phaser || document.write('<script src="js/vendor/phaser-{{PHASER_VERSION}}.min.js"><\/script>')</script>
+        <script>window.Phaser || document.write('<script src="js/vendor/phaser.min.js"><\/script>')</script>
         <!-- MINIFY ME -->
-        <script src="js/main.js"></script>
+        <script data-main="js/app.js" src="js/require.js"></script>
 
         <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
         <script>

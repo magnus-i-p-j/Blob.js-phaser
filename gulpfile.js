@@ -71,7 +71,8 @@ gulp.task('copy', [
     'copy:main.css',
     'copy:misc',
     'copy:normalize',
-    'copy:phaser'
+    'copy:phaser',
+    'copy:requirejs'
 ]);
 
 gulp.task('copy:index.html', function () {
@@ -83,14 +84,17 @@ gulp.task('copy:index.html', function () {
 
 gulp.task('copy:jquery', function () {
     return gulp.src(['node_modules/jquery/dist/jquery.min.js'])
-               .pipe(plugins.rename('jquery-' + pkg.dependencies.jquery + '.min.js'))
                .pipe(gulp.dest(dirs.dist + '/js/vendor'));
 });
 
 gulp.task('copy:phaser', function () {
     return gulp.src(['bower_components/phaser/build/phaser.min.js'])
-        .pipe(plugins.rename('phaser-' + bower.dependencies.phaser + '.min.js'))
         .pipe(gulp.dest(dirs.dist + '/js/vendor'));
+});
+
+gulp.task('copy:requirejs', function () {
+    return gulp.src(['node_modules/requirejs/require.js'])
+        .pipe(gulp.dest(dirs.dist + '/js'));
 });
 
 gulp.task('copy:main.css', function () {
