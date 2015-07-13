@@ -8,14 +8,14 @@ requirejs.config({
     // never includes a ".js" extension since
     // the paths config could be for a directory.
     paths: {
-        jquery: 'vendor/jquery.min.js',
+        jquery: 'vendor/jquery.min',
         app: 'app'
     }
 });
 
 // Start the main app logic.
-requirejs(['app/game'],
-    function (game) {
-        game.start();
+requirejs(['app/Game'],
+    function (Game) {
+        Game.start();
     });
 
