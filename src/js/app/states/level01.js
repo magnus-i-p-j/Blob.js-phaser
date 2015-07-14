@@ -29,7 +29,7 @@ define(['app/Phaser', 'app/gameobjects/Platform', 'app/gameobjects/Blob'],
 
             var blobFactory = Blob.factory(this);
             factories.push(blobFactory);
-            blobFactory.create(200, 100);
+            blobFactory.create(200, 200, 20, 20);
         };
 
         Level01.prototype.update = function () {

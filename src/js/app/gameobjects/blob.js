@@ -1,97 +1,161 @@
-define(['app/GameObjectFactory'],
-    function (GameObjectFactory) {
+define(['jquery', 'app/GameObjectFactory', 'vendor/ConvexHullGrahamScan'],
+    function ($, GameObjectFactory, ConvexHullGrahamScan) {
+
+        // A blob consists of globs
+        var Glob = function () {
+            this.view = null;
+        };
 
         var Blob = function (state, x, y) {
             this.x = x;
             this.y = y;
-            var view = new View(state, this);
-            this._controller = new Controller(state, this, view);
+
+            this.globSize = 8;
+            this.globs = this.createGlobs();
+
+            this._view = new View(state, this);
+            this._controller = new Controller(state, this, this._view);
+        };
+
+        Blob.prototype.createGlobs = function () {
+            var globs = [];
+            var layout = [1, 2, 3, 4, 5, 6, 6, 4];
+            for (var i = 0; i < layout.length; ++i) {
+                globs.push([]);
+                for (var j = 0; j < layout[i]; ++j) {
+                    var glob = new Glob();
+                    globs[i].push(glob);
+                }
+            }
+            return globs;
         };
 
         Blob.prototype.update = function () {
             this._controller.update();
+            this._view.update();
         };
 
         // View
         var View = function (state, model) {
-            var x = model.x;
-            var y = model.y;
+            this.state = state;
+            this.model = model;
+            this.group = state.make.group();
+            this.group.alpha = 1;
+            this.group.enableBody = true;
+            this.group.physicsBodyType = Phaser.Physics.P2JS;
 
-            this.globs = state.make.group();
-            this.globs.alpha = 0.5;
-            this.globs.enableBody = true;
-            this.globs.physicsBodyType = Phaser.Physics.P2JS;
+            var globs = this.createGlobs();
+            this.createGlobSprings(globs);
 
-            // Create bodies
-            this.center = this.createGlobs(state, this.globs, x, y, 1, 0, 2)[0];
-            this.inner = this.createGlobs(state, this.globs, x, y, 5, 10, 1);
-            this.outer = this.createGlobs(state, this.globs, x, y, 10, 20, 0);
+            state.world.add(this.group);
 
-            // Create constraints
-            for (var i = 0; i < this.inner.length; ++i) {
-                this.createGlobSpring(state, this.center, this.inner[i]);
-                this.createGlobSpring(state, this.inner[i], this.inner[(i + 1) % this.inner.length]);
-                this.createGlobSpring(state, this.inner[i], this.outer[(i * 2) % this.outer.length]);
-                this.createGlobSpring(state, this.inner[i], this.outer[(i * 2 + 1) % this.outer.length]);
-            }
-            for (var j = 0; j < this.outer.length; ++j) {
-                this.createGlobSpring(state, this.outer[j], this.outer[(j + 1) % this.outer.length]);
-            }
-
-            state.world.add(this.globs);
+            this.graphics = this.state.add.graphics(0,0);
         };
 
-        View.prototype.createGlobs = function (state, globs, ix, iy, n, radius, frame) {
-            var step = (2 * Math.PI) / n;
-            var createdGlobs = [];
-            for (var i = 0; i < n; ++i) {
-                var x = ix + Math.cos(step * i) * radius;
-                var y = iy + Math.sin(step * i) * radius;
-                var glob = globs.create(x, y, 'blob', frame);
-                glob.body.fixedRotation = true;
-                glob.rotation = step * i;
-                glob.body.setRectangle(8, 8, 0, 0, 0);
-                createdGlobs.push(glob);
+        View.prototype.createGlobs = function () {
+            var globs = this.model.globs;
+            var globSize = this.model.globSize;
+            var layoutMax = Math.max.apply(Math, globs.map(function (array) {
+                return array.length;
+            }));
+            for (var i = 0; i < globs.length; ++i) {
+                var offsetX = (((layoutMax - globs[i].length)) / 2) * globSize;
+                var offsetY = globs.length - i * globSize;
+                for (var j = 0; j < globs[i].length; ++j) {
+                    var x = offsetX + this.model.x + j * globSize;
+                    var y = this.model.y - offsetY;
+                    var glob = this.group.create(x, y, 'glob');
+                    glob.body.setRectangle(globSize);
+                    globs[i][j].view = glob;
+                    //glob.body.static = true;
+                }
             }
-            return createdGlobs;
+            return globs;
         };
 
-        View.prototype.createGlobSpring = function (state, lhs, rhs) {
-            var restLength = 9;
-            var stiffness = 10;
-            var damping = 3;
-            state.physics.p2.createSpring(lhs.body, rhs.body, restLength, stiffness, damping);
-            // state.physics.p2.createDistanceConstraint(
-            //    lhs.body, rhs.body, 8, [0, 0], [0, 0], 20);
+        View.prototype.createGlobSprings = function (globs) {
+            var restLength = 10;
+            var stiffness = 50;
+            var damping = 10;
+
+            var g_long;
+            var g_short;
+            for (var i = 0; i < globs.length - 1; ++i) {
+                if (globs[i].length <= globs[i + 1].length) {
+                    g_long = globs[i + 1];
+                    g_short = globs[i];
+                } else {
+                    g_long = globs[i];
+                    g_short = globs[i + 1];
+                }
+                var step = g_short.length / g_long.length;
+
+                for (var j = 0; j < g_long.length; j++) {
+                    this.state.physics.p2.createSpring(
+                        g_long[j].view,
+                        g_short[Math.floor(j * step)].view,
+                        restLength,
+                        stiffness,
+                        damping);
+                }
+            }
+
+            for (i = 0; i < globs.length; ++i) {
+                for (j = 1; j < globs[i].length; j++) {
+                    this.state.physics.p2.createSpring(
+                        globs[i][j].view,
+                        globs[i][j - 1].view,
+                        restLength,
+                        stiffness,
+                        damping);
+                }
+            }
         };
 
-        var Controller = function(state, model, view) {
+        View.prototype.update = function () {
+            var hull = this.convexHull();
+            var polygon = new Phaser.Polygon(hull);
+            this.graphics.clear();
+            this.graphics.beginFill(0xFF0000, 0.8);
+            this.graphics.drawShape(polygon);
+            this.graphics.endFill();
+        };
+
+        View.prototype.convexHull = function () {
+
+            var convexHullScan = new ConvexHullGrahamScan();
+            var globs = $.map(this.model.globs, function (layer) {
+                return layer;
+            });
+            $.each(globs, function (i, g) {
+                var x = g.view.x;
+                var y = g.view.y;
+                convexHullScan.addPoint(x, y);
+            });
+
+            return convexHullScan.getHull();
+        };
+
+        // Controller
+        var Controller = function (state, model, view) {
             this._view = view;
             this._cursors = state.input.keyboard.createCursorKeys();
         };
 
-        Controller.prototype.update = function() {
+        Controller.prototype.update = function () {
             if (this._cursors.left.isDown) {
                 //  Move to the left
-                this._view.globs.forEach(function (glob) {
-                    if (glob.body.x <= this._view.center.x) {
-                        glob.body.velocity.x = -150;
-                    }
+                this._view.group.forEach(function (glob) {
                     if (Math.random() > 0.7) {
-
-                        glob.body.velocity.x += 30;
+                        glob.body.velocity.x = -150;
                     }
                 }, this);
             }
             else if (this._cursors.right.isDown) {
                 //  Move to the right
-                this._view.globs.forEach(function (glob) {
-                    if (glob.body.x >= this._view.center.x) {
-                        glob.body.velocity.x = 150;
-                    }
+                this._view.group.forEach(function (glob) {
                     if (Math.random() > 0.7) {
-
-                        glob.body.velocity.x -= 30;
+                        glob.body.velocity.x = 150;
                     }
                 }, this);
 
@@ -99,14 +163,14 @@ define(['app/GameObjectFactory'],
             }
             else {
                 //  Stand still
-                this._view.center.body.velocity.y -= 10;
+                //this._view.center.body.velocity.y -= 10;
             }
         };
 
         return {
 
             preload: function (state) {
-                state.load.spritesheet('blob', 'assets/blob.png', 20, 20);
+                state.load.spritesheet('glob', 'assets/glob-test.png');
             },
             factory: function (state) {
                 return new GameObjectFactory(state, Blob);
