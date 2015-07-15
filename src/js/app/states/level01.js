@@ -1,4 +1,4 @@
-define(['app/Phaser', 'app/gameobjects/Platform', 'app/gameobjects/Blob'],
+define(['app/Phaser', 'app/gameobjects/Platform', 'app/gameobjects/blob/Blob'],
     function (Phaser, Platform, Blob) {
 
         var Level01 = function(){};
@@ -7,6 +7,7 @@ define(['app/Phaser', 'app/gameobjects/Platform', 'app/gameobjects/Blob'],
             this.load.image('sky', 'assets/sky.png');
             Platform.preload(this);
             Blob.preload(this);
+            this.game.time.advancedTiming = true;
         };
 
         var factories = [];
@@ -36,6 +37,7 @@ define(['app/Phaser', 'app/gameobjects/Platform', 'app/gameobjects/Blob'],
             $.each(factories, function (i, factory) {
                 factory.update();
             });
+            //console.log(this.game.time.fps);
         };
 
 
