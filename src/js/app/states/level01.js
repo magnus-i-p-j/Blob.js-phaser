@@ -3,11 +3,17 @@ define(['app/Phaser', 'app/gameobjects/Platform', 'app/gameobjects/blob/Blob'],
 
         var Level01 = function(){};
 
+        // TODO: Base class for levels.
         Level01.prototype.preload = function () {
             this.load.image('sky', 'assets/sky.png');
             Platform.preload(this);
             Blob.preload(this);
             this.game.time.advancedTiming = true;
+            this.lines = []; // TODO: Add to base class.
+        };
+
+        Level01.prototype.addLine = function(x1, y1, x2, y2) {
+            this.lines.push(new Phaser.Line(x1, y1, x2, y2));
         };
 
         var factories = [];

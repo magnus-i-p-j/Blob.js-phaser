@@ -1,5 +1,5 @@
-define(['jquery', 'app/GameObjectFactory', 'app/gameobjects/blob/BlobController', 'app/gameobjects/blob/BlobView'],
-    function ($, GameObjectFactory, BlobController, BlobView) {
+define(['app/GameObjectFactory', 'app/gameobjects/blob/BlobController', 'app/gameobjects/blob/BlobView'],
+    function (GameObjectFactory, BlobController, BlobView) {
 
         // A blob consists of globs
         var Glob = function (globSpec) {

@@ -46,8 +46,8 @@ define(['jquery', 'vendor/ConvexHullGrahamScan'],
                     var glob = globs[i][j];
                     var x = offsetX + this._model.x + j * glob.size;
                     var y = this._model.y - offsetY;
-                    var globSprite = this.group.create(x, y);
-                    globSprite.body.setRectangle(glob.size);
+                    var globSprite = this.group.create(x, y, 'glob');
+                    globSprite.body.setRectangle(glob.size, glob.size * 2);
                     globSprite.body.mass = glob.mass;
                     globSprite.fixedRotation = true;
                     sprites[i].push(globSprite);

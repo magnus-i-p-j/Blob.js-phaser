@@ -34,6 +34,7 @@ define(['jquery'],
             var dissolution = this.getDissolution(moving);
             this._model.dissolution = dissolution;
 
+            this.applyStress();
         };
 
         BlobController.prototype.getDissolution = function (moving) {
@@ -45,6 +46,11 @@ define(['jquery'],
             totalTime = moving ? totalTime + deltaTime : totalTime - deltaTime;
             var dissolution = max_d * totalTime * 0.3 + min_d;
             return Math.max( min_d, Math.min(max_d, dissolution));
+        };
+
+        BlobController.prototype.applyStress = function () {
+            var lines = this._state.lines;
+
         };
 
         return BlobController;

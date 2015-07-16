@@ -72,7 +72,8 @@ gulp.task('copy', [
     'copy:misc',
     'copy:normalize',
     'copy:phaser',
-    'copy:requirejs'
+    'copy:requirejs',
+    'copy:lodash'
 ]);
 
 gulp.task('copy:index.html', function () {
@@ -89,6 +90,11 @@ gulp.task('copy:jquery', function () {
 
 gulp.task('copy:phaser', function () {
     return gulp.src(['bower_components/phaser/build/phaser.min.js'])
+        .pipe(gulp.dest(dirs.dist + '/js/vendor'));
+});
+
+gulp.task('copy:lodash', function () {
+    return gulp.src(['node_modules/lodash/lodash.custom.js'])
         .pipe(gulp.dest(dirs.dist + '/js/vendor'));
 });
 

@@ -9,7 +9,17 @@ requirejs.config({
     // the paths config could be for a directory.
     paths: {
         jquery: 'vendor/jquery.min',
+        lodash: 'vendor/lodash.custom',
         app: 'app'
+    },
+    shim: {
+        // Libraries
+        jquery: {
+            exports: '$'
+        },
+        lodash: {
+            exports: '_'
+        }
     }
 });
 
