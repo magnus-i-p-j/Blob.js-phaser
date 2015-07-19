@@ -36,7 +36,7 @@ define(['app/Phaser', 'app/gameobjects/Platform', 'app/gameobjects/blob/Blob'],
 
             var blobFactory = Blob.factory(this);
             factories.push(blobFactory);
-            blobFactory.create(200, 200, 20, 20);
+            blobFactory.create(200, 200, Blob.defaultMesh(15), 20);
         };
 
         Level01.prototype.update = function () {

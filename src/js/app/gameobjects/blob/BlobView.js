@@ -1,5 +1,5 @@
-define(['jquery', 'vendor/ConvexHullGrahamScan'],
-    function ($, ConvexHullGrahamScan) {
+define(['jquery', 'lodash', 'vendor/ConvexHullGrahamScan'],
+    function ($, _, ConvexHullGrahamScan) {
 
         var BlobView = function (state, model) {
             this._state = state;
@@ -10,12 +10,14 @@ define(['jquery', 'vendor/ConvexHullGrahamScan'],
             this._sprites = this.createGlobSprites();
             state.world.add(this.group);
 
-            this._springSpec = {
-                restLength: 10 * model.viscosity,
-                stiffness: 40 * model.viscosity,
-                damping: 10 * (1 / model.viscosity)
-            };
-            this._springs = this.createGlobSprings(this._springSpec);
+            /*
+             this._springSpec = {
+             restLength: 10 * model.viscosity,
+             stiffness: 40 * model.viscosity,
+             damping: 10 * (1 / model.viscosity)
+             };
+             this._springs = this.createGlobSprings(this._springSpec);
+             */
 
 
             this._model.onUpdate.add(this.update, this);
@@ -30,13 +32,44 @@ define(['jquery', 'vendor/ConvexHullGrahamScan'],
         };
 
         BlobView.prototype.createGlobSprites = function () {
-            var globs = this._model.globs;
+            var globMesh = this._model.globMesh;
+            var globSize = globMesh[0].glob.size;
+            var width = globMesh.width;
+            var height = globMesh.height;
 
-            var width = Math.max.apply(Math, globs.map(function (array) {
-                return array.length;
-            }));
+            var sprites = {};
 
-            var sprites = [];
+            globMesh.forEach(
+                function (node, index, layer) {
+                    var offsetX = (((width - layer.length)) / 2) * globSize;
+                    var offsetY = height - index * globSize;
+
+                    _.forEach(layer, function (meshNode, j) {
+                        var glob = meshNode.glob;
+                        var x = offsetX + this._model.x + j * glob.size;
+                        var y = this._model.y - offsetY;
+                        var globSprite = this.group.create(x, y, 'glob');
+                        globSprite.body.setRectangle(glob.size, glob.size * 2);
+                        globSprite.body.mass = glob.mass;
+                        globSprite.body.staic = true;
+                        globSprite.fixedRotation = true;
+                        sprites[i].push(globSprite);
+                    }, this);
+
+                    for (var j = 0; j < globs[i].length; ++j) {
+                        var glob = globs[i][j];
+                        var x = offsetX + this._model.x + j * glob.size;
+                        var y = this._model.y - offsetY;
+                        var globSprite = this.group.create(x, y, 'glob');
+                        globSprite.body.setRectangle(glob.size, glob.size * 2);
+                        globSprite.body.mass = glob.mass;
+                        globSprite.body.mass = glob.mass;
+                        globSprite.fixedRotation = true;
+                        sprites[i].push(globSprite);
+                    }
+                }, this
+            );
+
             for (var i = 0; i < globs.length; ++i) {
                 sprites.push([]);
                 var offsetGlobSize = globs[0][0].size; // For now use the first size.
@@ -103,8 +136,8 @@ define(['jquery', 'vendor/ConvexHullGrahamScan'],
 
         BlobView.prototype.update = function () {
             this.drawBlob();
-            this.dissolveOrJell();
-            this.jiggle();
+            //this.dissolveOrJell();
+            //this.jiggle();
         };
 
         BlobView.prototype.drawBlob = function () {
